@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>과학 탐구 226 단어 계층형 패밀리 마스터</title>
+    <style>
+        body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #eaf1ed; margin: 0; padding: 20px; color: #2d3732; }
+        .container { max-width: 900px; margin: 0 auto; background: #fbfdfc; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #d4e2dc; }
+        h1 { text-align: center; color: #1f382b; margin-bottom: 20px; font-size: 22px; font-weight: bold; border-bottom: 2px solid #d4e2dc; padding-bottom: 12px; }
+        
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .mode-buttons { display: flex; gap: 8px; }
+        .mode-btn { padding: 8px 16px; border: 1px solid #b7c7be; background: #e2ede7; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 13px; color: #355042; }
+        .mode-btn.active { background: #3b6e54; color: white; border-color: #3b6e54; }
+        
+        .search-box { padding: 8px 12px; width: 250px; border: 1px solid #b7c7be; border-radius: 6px; font-size: 13px; background: #fff; }
+        
+        .tip-banner { background: #e5f1ea; border: 1px dashed #3b6e54; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 13px; color: #234e38; line-height: 1.5; }
+
+        .vocab-list { display: flex; flex-direction: column; gap: 10px; }
+        .vocab-card { background: #ffffff; border: 1px solid #d4e2dc; border-radius: 8px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .vocab-card:hover { border-color: #3b6e54; }
+        
+        .vocab-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .vocab-title { font-size: 15px; font-weight: bold; color: #1f382b; }
+        .vocab-pronounce { font-size: 12px; color: #526e60; font-style: italic; margin-left: 6px; }
+        .vocab-meaning { font-size: 13.5px; color: #2d3732; margin-top: 5px; line-height: 1.4; }
+        .vocab-tip { font-size: 11px; color: #234e38; background: #e5f1ea; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 6px; }
+
+        .expand-badge { background: #e2ede7; color: #3b6e54; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+        
+        .sub-tree-container { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #d4e2dc; display: none; background: #f6f9f7; padding: 10px; border-radius: 6px; }
+        .sub-tree-title { font-size: 11px; font-weight: bold; color: #3b6e54; margin-bottom: 6px; }
+        .sub-item { background: #ffffff; border: 1px solid #c8dcd2; padding: 8px; border-radius: 4px; margin-bottom: 5px; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+        .family-item { align-items: flex-start; }
+        .family-copy { min-width: 0; line-height: 1.5; width: 100%; }
+        .family-node-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; cursor: pointer; }
+        .nested-tree { margin-top: 8px; padding: 8px; }
+        .family-item { width: 100%; box-sizing: border-box; }
+        .family-subtitle { color: #526e60; font-size: 11px; font-weight: normal; }
+        .family-copy .vocab-tip { margin-top: 4px; }
+        .relation-badge { font-size: 11px; font-weight: bold; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+        .badge-opposite { background: #fee2e2; color: #991b1b; } /* 반대 개념 */
+        .badge-unit { background: #e0f2fe; color: #0369a1; }     /* 단위 패밀리 */
+        .badge-link { background: #fef3c7; color: #92400e; }     /* 상호 연관 */
+
+        .study-panel { display:none; }
+        .study-toolbar { display:flex; gap:8px; flex-wrap:wrap; margin: 0 0 16px; }
+        .study-mode-btn, .study-action { padding:9px 12px; border:1px solid #b7c7be; background:#fff; color:#355042; border-radius:7px; cursor:pointer; font-weight:bold; }
+        .study-mode-btn.active, .study-action.primary { background:#3b6e54; color:white; border-color:#3b6e54; }
+        .study-card { background:#fff; border:1px solid #d4e2dc; border-radius:12px; padding:20px; margin-bottom:12px; }
+        .study-question { font-size:18px; font-weight:bold; color:#1f382b; margin:8px 0 14px; line-height:1.5; }
+        .study-muted { color:#607468; font-size:13px; line-height:1.5; }
+        .study-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:9px; }
+        .study-option { padding:12px; border:1px solid #c8dcd2; background:#f8fbf9; border-radius:8px; cursor:pointer; text-align:left; }
+        .study-option:hover { border-color:#3b6e54; background:#eaf4ee; }
+        .study-option.correct { background:#dcfce7; border-color:#16a34a; }
+        .study-option.wrong { background:#fee2e2; border-color:#dc2626; }
+        .study-input { width:min(100%,420px); box-sizing:border-box; padding:11px; border:1px solid #b7c7be; border-radius:7px; font-size:15px; margin:8px 0; }
+        .study-feedback { margin:12px 0; padding:10px 12px; border-radius:7px; background:#e5f1ea; line-height:1.5; }
+        .match-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .match-choice { padding:10px; border:1px solid #c8dcd2; border-radius:7px; background:#fff; cursor:pointer; text-align:center; }
+        .match-choice.selected { background:#dbeafe; border-color:#2563eb; }
+        .match-choice.matched { opacity:.45; text-decoration:line-through; }
+        .flash-front { text-align:center; padding:28px 10px; font-size:25px; font-weight:bold; color:#1f382b; }
+        @media(max-width:600px){ .container{padding:14px;} .mode-buttons{flex-wrap:wrap;} .search-box{width:100%; box-sizing:border-box;} .study-question{font-size:16px;} }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔬 과학 탐구 단어 패밀리 정리본</h1>
+    
+    <div class="nav-bar">
+        <div class="mode-buttons">
+            <button class="mode-btn active" id="btn-en" onclick="switchMode('en')">🔤 영단어 기준</button>
+            <button class="mode-btn" id="btn-ko" onclick="switchMode('ko')">🇰🇷 한글 개념 기준</button>
+            <button class="mode-btn" id="btn-study" onclick="switchMode('study')">🧠 암기 연습</button>
+        </div>
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 검색어 입력..." oninput="filterData()">
+    </div>
+
+    <div class="tip-banner" id="guideTip">
+        💡 <b>패밀리 정리 가이드</b>: 관련 개념은 대표 단어 아래에서 뜻과 꿀팁까지 함께 확인할 수 있어요. 검색하면 숨겨진 단어도 개별 카드로 찾을 수 있습니다!
+    </div>
+
+    <div class="vocab-list" id="vocabContainer"></div>
+    <section class="study-panel" id="studyPanel">
+        <div class="study-toolbar" id="studyToolbar">
+            <button class="study-mode-btn active" onclick="startStudy('multiple')">객관식</button>
+            <button class="study-mode-btn" onclick="startStudy('short')">주관식</button>
+            <button class="study-mode-btn" onclick="startStudy('blank')">빈칸 채우기</button>
+            <button class="study-mode-btn" onclick="startStudy('match')">짝 맞추기</button>
+            <button class="study-mode-btn" onclick="startStudy('flash')">플래시카드</button>
+        </div>
+        <div id="studyContent"></div>
+    </section>
+</div>
+
+<script>
+    // 원본 226개 단어 데이터: 뜻·발음·꿀팁 및 기존 관계를 보존
+    const masterData = [
+        {id: 1, en: "acceleration", pronounce: "액셀러레이션", ko: "가속도", desc: "속도가 시간에 따라 얼마나 빠르게 변하는지 나타내는 물리량", tip: "속도가 액셀을 밟은 것처럼 변함"},
+        {id: 2, en: "acetate", pronounce: "아세테이트", ko: "아세트산염", desc: "아세트산에서 유래된 화합물 또는 그 소금 형태", tip: "식초 느낌의 화학 물질"},
+        {id: 3, en: "action-at-a-distance forces", pronounce: "액션 앳 어 디스턴스 포스", ko: "원격 작용력", desc: "서로 닿지 않고 떨어져 있어도 작용하는 힘 (중력, 자기력 등)", tip: "거리를 두고 작용하는 힘", relations: [{en: "contact forces", type: "opposite"}]},
+        {id: 4, en: "alkali metals", pronounce: "알칼리 메탈즈", ko: "알칼리 금속", desc: "주기율표 1족에 속하는 매우 반응성이 큰 금속들", tip: "1족 폭발적 반응 금속", relations: [{en: "alkaline earth metals", type: "link"}]},
+        {id: 5, en: "alkaline earth metals", pronounce: "알칼리 토메탈즈", ko: "알칼리 토금속", desc: "주기율표 2족에 속하는 금속들", tip: "2족 토양 속 금속", relations: [{en: "alkali metals", type: "link"}]},
+        {id: 6, en: "allele", pronounce: "알릴", ko: "대립유전자", desc: "같은 자리에서 형성을 결정하는 서로 다른 유전자 버전", tip: "쌍으로 대립하는 유전자"},
+        {id: 7, en: "amperes", pronounce: "암페어즈", ko: "암페어 (전류 단위)", desc: "전류의 세기를 나타내는 단위 (A)", tip: "전류 세기 측정 단위"},
+        {id: 8, en: "amplitude", pronounce: "앰플리튜드", ko: "진폭", desc: "파동이 흔들릴 때 중심에서 가장 많이 치우친 거리", tip: "파도의 높낮이 폭"},
+        {id: 9, en: "asexual reproduction", pronounce: "어섹슈얼 리프로덕션", ko: "무성 생식", desc: "짝짓기 없이 혼자서 자손을 번식하는 방식", tip: "성별 없이 혼자 번식", relations: [{en: "sexual reproduction", type: "opposite"}]},
+        {id: 10, en: "asteroid", pronounce: "애스터로이드", ko: "소행성", desc: "행성보다 작고 화성과 목성 사이 등에 주로 떠 있는 돌덩이", tip: "우주 소행성 돌멩이", relations: [{en: "comet", type: "link"}]},
+        {id: 11, en: "astronomers", pronounce: "애스트로노머즈", ko: "천문학자들", desc: "우주, 별, 행성 등을 연구하는 과학자들", tip: "별 연구하는 학자들"},
+        {id: 12, en: "astronomical", pronounce: "애스트로노미컬", ko: "천문학의 / 천문학적인", desc: "우주와 관련된, 또는 숫자가 엄청나게 크다는 뜻", tip: "우주처럼 엄청난 크기"},
+        {id: 13, en: "atom", pronounce: "애텀", ko: "원자", desc: "물질을 이루는 가장 기본적이고 작은 입자", tip: "물질의 최소 알갱이"}, // 중복되는 atomic mass 등 전면 제거 완료
+        {id: 14, en: "atomic mass", pronounce: "애토믹 매스", ko: "원자 질량", desc: "원자의 무게 (양성자와 중성자의 합)", tip: "원자의 무게"},
+        {id: 15, en: "atomic number", pronounce: "애토믹 넘버", ko: "원자 번호", desc: "원자핵 안에 들어 있는 양성자의 개수", tip: "원소의 주민등록번호"},
+        {id: 16, en: "autotroph", pronounce: "오토트로프", ko: "독립영양생물", desc: "스스로 광합성 등을 통해 영양분을 만들어 사는 생물", tip: "스스로 먹고사는 식물"},
+        {id: 17, en: "axis", pronounce: "액시스", ko: "축", desc: "지구가 돌거나 할 때 기준으로 삼는 가상의 중심선", tip: "회전의 중심 축", relations: [{en: "rotation", type: "link"}]},
+        {id: 18, en: "axis tilt", pronounce: "액시스 틸트", ko: "자전축 기울기", desc: "지구가 비스듬하게 기울어진 각도", tip: "기울어져서 생기는 계절"},
+        {id: 19, en: "Big Bang theory", pronounce: "빅뱅 씨어리", ko: "빅뱅 이론", desc: "우주가 대폭발과 함께 시작되어 팽창하고 있다는 이론", tip: "우주 대폭발 탄생"},
+        {id: 20, en: "binary", pronounce: "바이너리", ko: "이진의 / 두 부분의", desc: "0과 1로 이루어지거나 두 개로 짝지어진 상태", tip: "둘로 이루어진 상태"},
+        {id: 21, en: "binary fission", pronounce: "바이너리 피션", ko: "이분법적 분열", desc: "세포 하나가 똑같은 두 개로 쪼개지는 세포 분열", tip: "둘로 쪼개지는 분열"},
+        {id: 22, en: "binomial", pronounce: "바이노미얼", ko: "이항식 / 이명법", desc: "학명에서 속명+종명 두 단어로 부르는 방식", tip: "두 개의 이름"},
+        {id: 23, en: "black hole", pronounce: "블랙 홀", ko: "블랙홀", desc: "중력이 너무 강력해서 빛조차 빠져나오지 못하는 천체", tip: "빛까지 삼키는 구멍"},
+        {id: 24, en: "Bohr model", pronounce: "보어 모델", ko: "보어 원자 모형", desc: "원자핵 주위를 전자가 궤도를 그리며 돌고 있다는 모형", tip: "태양계 모양 원자 모형"},
+        {id: 25, en: "boiling point", pronounce: "보일링 포인트", ko: "끓는점", desc: "액체가 끓어서 기체로 변하기 시작하는 온도", tip: "물 끓는 온도", relations: [{en: "melting point", type: "link"}]},
+        {id: 26, en: "budding", pronounce: "버딩", ko: "출아법", desc: "몸의 일부가 솟아올라 자란 뒤 떨어져 나가 번식함", tip: "새싹처럼 톡 튀어나와 번식"},
+        {id: 27, en: "cancer", pronounce: "캔서", ko: "암 (질병)", desc: "세포가 멈추지 않고 비정상적으로 빠르게 증식함", tip: "무한 세포 분열 질병"},
+        {id: 28, en: "celestial bodies", pronounce: "셀레스티얼 바디즈", ko: "천체", desc: "우주에 떠 있는 모든 자연물 (별, 행성 등)", tip: "하늘의 모든 자연물"},
+        {id: 29, en: "cell cycle", pronounce: "셀 사이클", ko: "세포 주기", desc: "세포가 태어나 자라고 복제되어 갈라지는 생애 주기", tip: "세포의 일생 순환"},
+        {id: 30, en: "charging by conduction", pronounce: "차징 바이 컨덕션", ko: "전도에 의한 대전", desc: "물체끼리 직접 맞닿게 해서 전기를 옮기는 현상", tip: "직접 접촉해서 충전", relations: [{en: "charging by induction", type: "link"}]},
+        {id: 31, en: "charging by induction", pronounce: "차징 바이 인덕션", ko: "유도에 의한 대전", desc: "접촉 없이 가까이만 가져가도 전기가 유도됨", tip: "안 닿고 유도해서 충전", relations: [{en: "charging by conduction", type: "link"}]},
+        {id: 32, en: "chemical", pronounce: "케미컬", ko: "화학 물질 / 화학의", desc: "원소나 화합물로 이루어진 모든 물질", tip: "세상의 화학 물질"},
+        {id: 33, en: "chemical formula", pronounce: "케미컬 포뮬라", ko: "화학식", desc: "원소 종류와 개수를 기호로 나타낸 것 (H₂O 등)", tip: "화학 기호 공식"},
+        {id: 34, en: "chemical name", pronounce: "케미컬 네임", ko: "화학명", desc: "화학 물질의 공식적인 명칭", tip: "화학 물질의 본명"},
+        {id: 35, en: "chemical symbol", pronounce: "케미컬 심볼", ko: "화학 기호", desc: "원소를 나타내는 알파벳 기호 (O, H 등)", tip: "원소 약자 기호"},
+        {id: 36, en: "chromosome", pronounce: "크로모좀", ko: "염색체", desc: "DNA가 똘똘 뭉쳐 유전 정보를 담은 막대 구조물", tip: "유전자의 단단한 보관함"},
+        {id: 37, en: "circuit diagrams", pronounce: "서킷 다이어그램즈", ko: "회로도", desc: "전기 장치 연결을 그림 기호로 그려놓은 설계도", tip: "전기 길 지도"},
+        {id: 38, en: "clone", pronounce: "클론", ko: "복제 생물 / 클론", desc: "유전자 구성이 원본과 완전히 똑같은 생물", tip: "유전자 완벽 복사판"},
+        {id: 39, en: "comet", pronounce: "코멧", ko: "혜성", desc: "얼음과 먼지로 이루어져 긴 꼬리를 남기는 천체", tip: "긴 꼬리 얼음덩이"},
+        {id: 40, en: "conductivity", pronounce: "컨덕티비티", ko: "전도성", desc: "전기나 열이 얼마나 잘 흐르는지 나타내는 성질", tip: "전기 및 열 전달력", relations: [{en: "insulators", type: "opposite"}]},
+        {id: 41, en: "conductors", pronounce: "컨덕터즈", ko: "도체", desc: "전기가 잘 통하는 물질 (구리, 철 등)", tip: "전기가 쌩쌩 달리는 길", relations: [{en: "insulators", type: "opposite"}]},
+        {id: 42, en: "constellations", pronounce: "콘스텔레이션즈", ko: "별자리", desc: "밤하늘의 별들을 선으로 이어 만든 모양", tip: "하늘의 별들을 이은 그림"},
+        {id: 43, en: "contact forces", pronounce: "컨택트 포스즈", ko: "접촉력", desc: "물체가 실제로 맞닿아 있을 때만 작용하는 힘", tip: "접촉해야만 생기는 힘", relations: [{en: "action-at-a-distance forces", type: "opposite"}]},
+        {id: 44, en: "controlled", pronounce: "컨트롤드", ko: "통제된 (변인)", desc: "실험 시 결과 영향 변인을 일정하게 유지한 상태", tip: "변인들을 꽉 잡고 통제함"},
+        {id: 45, en: "Copernicus", pronounce: "코페르니쿠스", ko: "코페르니쿠스", desc: "태양이 중심이라는 지동설을 주장한 천문학자", tip: "지동설을 주장한 학자", relations: [{en: "Ptolemy", type: "opposite"}]},
+        {id: 46, en: "cosmological red shift", pronounce: "코스모로지컬 레드 쉬프트", ko: "우주론적 적색편이", desc: "우주 팽창으로 별빛 파장이 길어져 붉게 보임", tip: "빛이 붉게 늘어남"},
+        {id: 47, en: "coulomb", pronounce: "쿨롱", ko: "쿨롱 (전하량 단위)", desc: "전하(전기량)의 단위 (C)", tip: "전기량의 표준 단위"},
+        {id: 48, en: "covalent compound", pronounce: "코발런트 컴파운드", ko: "공유 결합 화합물", desc: "비금속 원소들이 전자를 공유하여 만든 물질", tip: "전자를 사이좋게 공유함", relations: [{en: "ionic compound", type: "link"}]},
+        {id: 49, en: "current electricity", pronounce: "커런트 일렉트릭리티", ko: "전류 (동전기)", desc: "전하가 도선을 따라 한 방향으로 흐르는 현상", tip: "전기가 한 방향으로 흐름", relations: [{en: "static charge", type: "opposite"}]},
+        {id: 50, en: "cytokinesis", pronounce: "사이토키네시스", ko: "세포질 분열", desc: "세포핵이 나뉜 후 세포질까지 완전히 갈라짐", tip: "세포 몸통이 쪼개짐"},
+        {id: 51, en: "density", pronounce: "덴시티", ko: "밀도", desc: "물질이 얼마나 빽빽하게 차 있는지 나타내는 정도", tip: "빽빽함의 정도"},
+        {id: 52, en: "differentiation", pronounce: "디퍼런시에이션", ko: "세포 분화", desc: "세포가 역할에 맞게 전문적인 세포로 변함", tip: "제각각 다른 역할을 맡음"},
+        {id: 53, en: "diploid number", pronounce: "디플로이드 넘버", ko: "이배체 수 (2n)", desc: "상동염색체가 쌍을 이루어 2n개 들어 있는 수", tip: "쌍(2n)을 이룬 염색체 수", relations: [{en: "haploid number", type: "opposite"}]},
+        {id: 54, en: "DNA", pronounce: "디엔에이", ko: "디엔에이 (유전물질)", desc: "생물의 유전 정보를 담고 있는 생명의 설계도", tip: "생명의 원본 설계도"},
+        {id: 55, en: "dominant", pronounce: "도미넌트", ko: "우성 (유전)", desc: "유전될 때 겉모습으로 강하게 표현되는 성질", tip: "겉모습을 지배함", relations: [{en: "recessive", type: "opposite"}]},
+        {id: 56, en: "Doppler effect", pronounce: "도플러 이펙트", ko: "도플러 효과", desc: "파원의 이동으로 소리/빛 파장이 달라지는 현상", tip: "구급차 소리가 변하는 현상"},
+        {id: 57, en: "dwarf", pronounce: "드워프", ko: "왜행성 / 왜소한", desc: "평범한 것보다 크기가 작은 천체 (명왕성 등)", tip: "난쟁이처럼 작은 천체"},
+        {id: 58, en: "electric circuit", pronounce: "일렉트릭 서킷", ko: "전기 회로", desc: "전류가 끊기지 않고 한 바퀴 돌 수 있는 길", tip: "전기가 도는 운동장", relations: [{en: "series circuit", type: "link"}, {en: "parallel circuit", type: "link"}]},
+        {id: 59, en: "electric current", pronounce: "일렉트릭 커런트", ko: "전류", desc: "전자의 흐름에 의해 전기가 흐르는 것", tip: "전기의 강물"},
+        {id: 60, en: "electric force", pronounce: "일렉트릭 포스", ko: "전기력", desc: "전기를 띤 물체들 사이의 미는 힘과 당기는 힘", tip: "전기끼리 밀고 당김"},
+        {id: 61, en: "electric load", pronounce: "일렉트릭 로드", ko: "전기 부하", desc: "전기를 사용해 일로 바꾸는 장치 (전구 등)", tip: "전기를 소모하는 짐"},
+        {id: 62, en: "electric potential energy", pronounce: "일렉트릭 포텐셜 에너지", ko: "전기 위치 에너지", desc: "전기가 전기장 속에서 가진 잠재적 에너지", tip: "전기의 잠재력"},
+        {id: 63, en: "electrical power", pronounce: "일렉트릭 파워", ko: "전력", desc: "전기가 1초 동안 하는 일의 양 (W)", tip: "전기의 일 처리 능력"},
+        {id: 64, en: "electrical resistance", pronounce: "일렉트릭 리지스턴스", ko: "전기 저항", desc: "전기의 흐름을 방해하는 정도 (Ω)", tip: "전기의 흐름을 막아섬"},
+        {id: 65, en: "electrochemical cells", pronounce: "일렉트로케미컬 셀즈", ko: "전기화학 전지", desc: "화학 반응으로 전기를 만드는 장치 (배터리)", tip: "화학 반응 배터리"},
+        {id: 66, en: "electrodes", pronounce: "일렉트로즈", ko: "전극", desc: "전류가 드나드는 (+)극과 (-)극 막대", tip: "전기가 드나드는 문고리"},
+        {id: 67, en: "electrolyte", pronounce: "일렉트로라이트", ko: "전해질", desc: "물에 녹아 전기가 통하게 만드는 물질", tip: "물에 녹아 전기를 통하게 함"},
+        {id: 68, en: "electromagnetic radiation", pronounce: "일렉트로마그네틱 레이디에이션", ko: "전자기 복사", desc: "빛, 전파 등 전기와 자기장이 퍼져나가는 파동", tip: "우주로 뻗어나가는 빛과 전파"},
+        {id: 69, en: "electron", pronounce: "일렉트론", ko: "전자", desc: "원자핵 주위를 돌며 (-) 전기를 띠는 입자", tip: "음(-)전하 알갱이", relations: [{en: "proton", type: "opposite"}]},
+        {id: 70, en: "electron shell", pronounce: "일렉트론 셸", ko: "전자 껍질", desc: "전자가 돌고 있는 특정 에너지 층", tip: "전자가 들어있는 껍데기"},
+        {id: 71, en: "element", pronounce: "엘리먼트", ko: "원소", desc: "더 이상 쪼개질 수 없는 기본 물질", tip: "물질의 기초 재료"},
+        {id: 72, en: "elliptical galaxy", pronounce: "엘립티컬 갤러시", ko: "타원 은하", desc: "타원 모양으로 생긴 은하", tip: "타원 모양 은하", relations: [{en: "spiral galaxy", type: "link"}, {en: "irregular galaxy", type: "link"}]},
+        {id: 73, en: "embryo", pronounce: "엠브리오", ko: "배아", desc: "수정란이 사람이 되기 전 아주 초기 단계", tip: "생명의 초기 아기 단계"},
+        {id: 74, en: "embryonic development", pronounce: "엠브로닉 디벨롭먼트", ko: "배아 발달", desc: "수정란이 세포분열로 형태를 갖추어가는 과정", tip: "배아가 사람으로 자라남"},
+        {id: 75, en: "empirical", pronounce: "엠피리컬", ko: "경험적인 / 실증적인", desc: "직접 눈으로 보고 실험해서 얻은 증거에 근거함", tip: "직접 실험한 실증적 사실"},
+        {id: 76, en: "endothermic", pronounce: "엔도써믹", ko: "흡열 반응의", desc: "주변 열을 흡수하면서 온도가 낮아지는 반응", tip: "열을 안으로 흡수함", relations: [{en: "exothermic", type: "opposite"}]},
+        {id: 77, en: "energy", pronounce: "에너지", ko: "에너지", desc: "일을 할 수 있는 능력", tip: "모든 활동의 원동력"},
+        {id: 78, en: "ethics", pronounce: "에틱스", ko: "과학 윤리", desc: "과학 기술을 쓸 때 지켜야 할 도덕적 기준", tip: "과학자가 지킬 도덕선"},
+        {id: 79, en: "eukaryote", pronounce: "유카리오트", ko: "진핵생물", desc: "세포 안에 뚜렷한 핵을 가진 고등 생물", tip: "진짜 핵을 가진 생물", relations: [{en: "prokaryote", type: "opposite"}]},
+        {id: 80, en: "evidence", pronounce: "에비던스", ko: "증거", desc: "주장이 맞는지 증명해 주는 확실한 사실", tip: "확실한 증거물"},
+        {id: 81, en: "evolution", pronounce: "에볼루션", ko: "진화론", desc: "오랜 시간에 걸쳐 환경에 맞게 유전적으로 변화함", tip: "환경에 맞게 서서히 변함"},
+        {id: 82, en: "exothermic", pronounce: "엑소써믹", ko: "발열 반응의", desc: "열을 밖으로 뿜어내며 뜨거워지는 화학 반응", tip: "열을 밖으로 뿜어냄", relations: [{en: "endothermic", type: "opposite"}]},
+        {id: 83, en: "external fertilization", pronounce: "엑스터널 퍼틸라이제이션", ko: "체외 수정", desc: "몸 밖(물속)에 알과 정자를 내뿜어 수정시킴", tip: "바깥에서 수정", relations: [{en: "internal fertilization", type: "opposite"}]},
+        {id: 84, en: "fault", pronounce: "폴트", ko: "단층", desc: "지진 등으로 땅속 암석이 끊어져 어긋난 틈", tip: "땅이 어긋난 틈", relations: [{en: "fold", type: "link"}]},
+        {id: 85, en: "fertilization", pronounce: "퍼틸라이제이션", ko: "수정 (생식)", desc: "정자와 난자가 만나 하나의 세포가 되는 과정", tip: "정자와 난자의 만남"},
+        {id: 86, en: "fission", pronounce: "피션", ko: "핵분열", desc: "무거운 원자핵이 쪼개지며 에너지를 내는 현상", tip: "원자핵이 쪼개짐", relations: [{en: "fusion", type: "opposite"}]},
+        {id: 87, en: "fold", pronounce: "폴드", ko: "습곡", desc: "땅이 양쪽 힘을 받아 주름지듯 구부러진 지형", tip: "종이처럼 주름지게 접힘", relations: [{en: "fault", type: "link"}]},
+        {id: 88, en: "force", pronounce: "포스", ko: "힘 (물리)", desc: "물체의 모양이나 움직임을 변화시키는 원인", tip: "물체를 움직이는 에너지"},
+        {id: 89, en: "fragmentation", pronounce: "프래그멘테이션", ko: "파편화 / 분열 번식", desc: "몸의 일부가 떨어져 나가 각각 새로운 개체로 자람", tip: "조각나서 번식함"},
+        {id: 90, en: "fusion", pronounce: "퓨전", ko: "핵융합", desc: "가벼운 원자핵끼리 합쳐지며 에너지를 뿜어냄", tip: "하나로 융합됨", relations: [{en: "fission", type: "opposite"}]},
+        {id: 91, en: "Galileo", pronounce: "갈릴레오", ko: "갈릴레오 갈릴레이", desc: "망원경으로 천체를 관측하고 지동설을 지지함", tip: "망원경 천문학자"},
+        {id: 92, en: "gametes", pronounce: "가미츠", ko: "생식세포", desc: "자손을 남기기 위한 정자와 난자", tip: "정자와 난자 알갱이"},
+        {id: 93, en: "gene", pronounce: "진", ko: "유전자", desc: "생김새나 특징을 결정하는 DNA 조각", tip: "특징을 결정하는 DNA 조각"},
+        {id: 94, en: "gene mutation", pronounce: "진 뮤테이션", ko: "유전자 돌연변이", desc: "DNA 서열에 오류가 생긴 현상", tip: "유전자가 돌변함"},
+        {id: 95, en: "gene therapy", pronounce: "진 테라피", ko: "유전자 치료", desc: "망가진 유전자를 정상으로 고치는 기술", tip: "유전자를 치료함"},
+        {id: 96, en: "generation", pronounce: "제너레이션", ko: "세대", desc: "부모에서 자식으로 이어지는 생물의 주기", tip: "이어지는 생명 주기"},
+        {id: 97, en: "genetic diversity", pronounce: "제네틱 다이버시티", ko: "유전적 다양성", desc: "유전자가 제각각 달라 다양한 특징을 가짐", tip: "유전자가 다양하게 존재함"},
+        {id: 98, en: "geosynchronous orbit", pronounce: "지오신크로너스 오르빗", ko: "정지 궤도", desc: "지구 자전 속도와 같아 늘 같은 자리에 보임", tip: "지구와 발맞추어 도는 궤도"},
+        {id: 99, en: "grounding", pronounce: "그라운딩", ko: "접지", desc: "전기를 땅으로 흘려보내 안전하게 만드는 장치", tip: "땅으로 전기를 흘려보냄"},
+        {id: 100, en: "halogens", pronounce: "할로겐즈", ko: "할로젠 원소", desc: "주기율표 17족에 있는 반응성이 큰 비금속들", tip: "17족 독한 비금속들"},
+        {id: 101, en: "haploid number", pronounce: "해플로이드 넘버", ko: "반수체 수 (n)", desc: "생식세포에 들어 있는 절반 수의 염색체 (n)", tip: "절반만 가진 염색체 (n)", relations: [{en: "diploid number", type: "opposite"}]},
+        {id: 102, en: "hazard symbol", pronounce: "해저드 심볼", ko: "위험 기호", desc: "화학약품 등의 위험을 그림으로 알리는 표지판", tip: "위험 경고 그림"},
+        {id: 103, en: "heterogeneous", pronounce: "헤테로지니어스", ko: "불균일 혼합물", desc: "물질이 고르게 섞여 있지 않은 상태", tip: "다른 것들이 섞여 불균일함", relations: [{en: "homogeneous", type: "opposite"}]},
+        {id: 104, en: "heterozygous", pronounce: "헤테로자이거스", ko: "이형접합의", desc: "대립유전자 두 개가 서로 다른 형태인 것 (Aa)", tip: "서로 다른 유전자 쌍", relations: [{en: "homozygous", type: "opposite"}]},
+        {id: 105, en: "holistic", pronounce: "홀리스틱", ko: "전체론적인", desc: "부분만 보지 않고 전체적인 맥락을 보는 시각", tip: "전체를 보는 관점"},
+        {id: 106, en: "homeostasis", pronounce: "홈오스타시스", ko: "항상성", desc: "체온이나 혈당 등을 일정하게 유지하려는 성질", tip: "항상 일정하게 유지"},
+        {id: 107, en: "homogeneous", pronounce: "호모지니어스", ko: "균일 혼합물", desc: "눈으로 보기에 완전히 고르게 섞여 있는 상태", tip: "완전히 고르게 섞임", relations: [{en: "heterogeneous", type: "opposite"}]},
+        {id: 108, en: "homologous chromosomes", pronounce: "호모로거스 크로모좀즈", ko: "상동 염색체", desc: "모양과 크기가 똑같아서 쌍을 이루는 염색체", tip: "쌍둥이처럼 닮은 염색체"},
+        {id: 109, en: "homozygous", pronounce: "호모자이거스", ko: "동형접합의", desc: "대립유전자 두 개가 똑같은 형태인 것 (AA)", tip: "완전 똑같은 유전자 쌍", relations: [{en: "heterozygous", type: "opposite"}]},
+        {id: 110, en: "hypothesis", pronounce: "하이포시스", ko: "가설", desc: "실험으로 증명해 보려고 세우는 임시 주장", tip: "실험 전 세우는 임시 예상"},
+        {id: 111, en: "independent", pronounce: "인디펜던트", ko: "독립적인", desc: "다른 것의 영향을 받지 않고 작용함", tip: "간섭받지 않는 상태"},
+        {id: 112, en: "infiltration", pronounce: "인필트레이션", ko: "침투 (수문학)", desc: "비가 내릴 때 물이 땅속으로 스며들어감", tip: "땅속으로 스며듦"},
+        {id: 113, en: "insulators", pronounce: "인슐레이터즈", ko: "부도체 / 절연체", desc: "전기가 통하지 않게 막아주는 물질", tip: "전기를 차단하는 물질", relations: [{en: "conductors", type: "opposite"}]},
+        
+        // 114 ~ 226
+        {id: 114, en: "internal fertilization", pronounce: "인터널 퍼틸라이제이션", ko: "체내 수정", desc: "암컷 몸속 안에서 정자와 난자가 만나 수정됨", tip: "몸속 안에서 수정", relations: [{en: "external fertilization", type: "opposite"}]},
+        {id: 115, en: "interphase", pronounce: "인터페이즈", ko: "간기 (세포주기)", desc: "세포 분열 전 준비를 하며 DNA를 복사하는 시기", tip: "분열 전 준비운동 시기"},
+        {id: 116, en: "interstellar matter", pronounce: "인터스텔라 매터", ko: "성간 물질", desc: "별과 별 사이에 떠 있는 가스와 먼지 구름", tip: "별 사이 우주 먼지"},
+        {id: 117, en: "ionic compound", pronounce: "아이오닉 컴파운드", ko: "이온 화합물", desc: "양이온과 음이온이 서로 결합한 물질", tip: "이온들끼리 찰싹 붙음"},
+        {id: 118, en: "ionic lattice", pronounce: "아이오닉 래티스", ko: "이온 격자", desc: "이온들이 규칙적으로 촘촘하게 짜여 있는 구조", tip: "이온들의 촘촘한 구조"},
+        {id: 119, en: "irregular galaxy", pronounce: "이레귤러 갤러시", ko: "불규칙 은하", desc: "정해진 모양 없이 자유분방하게 생긴 은하", tip: "제멋대로 생긴 은하"},
+        {id: 120, en: "joule", pronounce: "줄", ko: "줄 (에너지 단위)", desc: "에너지를 나타내는 단위 (J)", tip: "에너지의 측정 단위"},
+        {id: 121, en: "junction point", pronounce: "정션 포인트", ko: "접합점 / 분기점", desc: "회로에서 길이 여러 갈래로 갈라지거나 만나는 지점", tip: "회로가 갈라지는 연결점"},
+        {id: 122, en: "Kepler", pronounce: "케플러", ko: "요하네스 케플러", desc: "행성 운동 법칙(케플러 법칙)을 발견한 천문학자", tip: "행성 궤도 법칙 발견자"},
+        {id: 123, en: "kilowatt-hour", pronounce: "킬로와트 아워", ko: "킬로와트시", desc: "가정에서 쓰는 전기 에너지를 측정하는 단위 (kWh)", tip: "가정용 전기 요금 단위"},
+        {id: 124, en: "kingdoms", pronounce: "킹덤즈", ko: "계 (생물 분류)", desc: "생물을 가장 크게 나누는 분류 단위 (동물계 등)", tip: "생물의 거대한 분류 그룹"},
+        {id: 125, en: "law (scientific law)", pronounce: "로", ko: "과학 법칙", desc: "자연 현상에서 항상 일정한 절대적 규칙", tip: "변하지 않는 자연의 규칙"},
+        {id: 126, en: "laws of static charge", pronounce: "로즈 오브 스테틱 차지", ko: "정전기 법칙", desc: "같은 전하끼리는 밀고 다른 전하끼리는 당김", tip: "정전기 밀고 당김의 법칙"},
+        {id: 127, en: "light year", pronounce: "라이트 이어", ko: "광년", desc: "빛이 1년 동안 달리는 우주 거리 단위", tip: "빛이 1년간 날아간 거리"},
+        {id: 128, en: "lunar eclipse", pronounce: "루나 이클립스", ko: "월식", desc: "달이 지구 그림자에 가려 어두워지는 현상", tip: "달이 가려지는 현상", relations: [{en: "solar eclipse", type: "opposite"}]},
+        {id: 129, en: "lunar month", pronounce: "루나 먼스", ko: "삭망월 / 음력 한 달", desc: "달이 모양을 한 바퀴 바꾸는 데 걸리는 시간", tip: "달 모양의 한 바퀴 주기"},
+        {id: 130, en: "mass", pronounce: "매스", ko: "질량", desc: "장소가 바뀌어도 변하지 않는 물체의 고유 양", tip: "고유한 물질의 양"},
+        {id: 131, en: "mating", pronounce: "메이팅", ko: "교배 / 짝짓기", desc: "동물이 암수끼리 만나 자손을 낳는 행동", tip: "동물들의 짝짓기 행동"},
+        {id: 132, en: "meiosis", pronounce: "마이오시스", ko: "감수분열", desc: "생식세포를 만들기 위해 염색체 수가 반으로 줄어듦", tip: "염색체가 반으로 줄어듦", relations: [{en: "mitosis", type: "opposite"}]},
+        {id: 133, en: "melting point", pronounce: "멜팅 포인트", ko: "녹는점", desc: "고체 물질이 열을 받아 액체로 녹기 시작하는 온도", tip: "고체가 녹기 시작하는 온도"},
+        {id: 134, en: "metal", pronounce: "메탈", ko: "금속", desc: "전기가 잘 통하고 단단하며 광택이 나는 원소", tip: "단단하고 전기가 통하는 원소", relations: [{en: "non-metal", type: "opposite"}]},
+        {id: 135, en: "metalloid", pronounce: "메탈로이드", ko: "준금속", desc: "금속과 비금속의 성질을 모두 가진 중간 물질", tip: "금속과 비금속 반반"},
+        {id: 136, en: "mitosis", pronounce: "마이토시스", ko: "체세포분열", desc: "몸을 자라게 하기 위해 똑같은 세포를 복제함", tip: "내 몸을 똑같이 복제함", relations: [{en: "meiosis", type: "opposite"}]},
+        {id: 137, en: "model (scientific model)", pronounce: "모델", ko: "과학적 모형", desc: "복잡한 현상을 이해하기 쉽게 축소하거나 비유함", tip: "이해하기 쉽게 만든 모형"},
+        {id: 138, en: "molecule", pronounce: "몰리큘", ko: "분자", desc: "원자들이 모여 성질을 유지하는 가장 작은 입자", tip: "성질을 가진 최소 입자"},
+        {id: 139, en: "moon", pronounce: "문", ko: "달 / 위성", desc: "행성 주위를 도는 천체", tip: "행성을 도는 위성"},
+        {id: 140, en: "multiple ion charge", pronounce: "멀티플 아이온 차지", ko: "다중 이온 전하", desc: "하나의 금속 원소가 여러 가지 전하를 띨 수 있음", tip: "여러 형태의 전하"},
+        {id: 141, en: "multivalent metal", pronounce: "멀티발런트 메탈", ko: "다가 금속", desc: "전하를 여러 개 가질 수 있는 금속 원소", tip: "가변적인 전하의 금속"},
+        {id: 142, en: "mutagen", pronounce: "뮤타젠", ko: "돌연변이원", desc: "유전자에 상처를 주어 돌연변이를 일으키는 물질", tip: "돌연변이 유발 물질"},
+        {id: 143, en: "nebula", pronounce: "네뷸라", ko: "성운", desc: "우주 공간에 먼지와 가스가 구름처럼 뭉쳐 있음", tip: "우주 속 먼지 구름"},
+        {id: 144, en: "negative mutation", pronounce: "네거티브 뮤테이션", ko: "음성 돌연변이", desc: "유전자 변형 때문에 몸에 해로운 장애가 생김", tip: "해로운 유전자 변이", relations: [{en: "positive mutation", type: "opposite"}]},
+        {id: 145, en: "neutral mutation", pronounce: "뉴트럴 뮤테이션", ko: "중성 돌연변이", desc: "몸에 좋지도 나쁘지도 않은 유전자 변화", tip: "해롭지도 이롭지도 않음"},
+        {id: 146, en: "neutron", pronounce: "뉴트론", ko: "중성자", desc: "원자핵 안에 들어 있는 전기가 없는 알갱이", tip: "전하가 없는 중성 입자", relations: [{en: "proton", type: "opposite"}]},
+        {id: 147, en: "niche", pronounce: "니치", ko: "생태적 지위", desc: "생물이 생태계 안에서 차지하는 역할과 자리", tip: "생태계 속의 역할"},
+        {id: 148, en: "noble gases", pronounce: "노블 개스즈", ko: "비활성 기체", desc: "다른 물질과 거의 반응하지 않는 안정된 기체", tip: "안정적인 18족 기체"},
+        {id: 149, en: "nomenclature", pronounce: "노멘클레이처", ko: "명명법", desc: "화합물이나 생물 이름을 규칙에 맞게 짓는 방식", tip: "규칙대로 이름 짓는 법"},
+        {id: 150, en: "non-metal", pronounce: "논 메탈", ko: "비금속", desc: "금속이 아닌 원소들 (산소, 질소 등)", tip: "금속이 아닌 원소들", relations: [{en: "metal", type: "opposite"}]},
+        {id: 151, en: "nucleolus", pronounce: "뉴클리어러스", ko: "인 (세포핵 속)", desc: "세포핵 속에서 리보솜을 만드는 뭉치 부위", tip: "핵 내부의 인"},
+        {id: 152, en: "nucleus", pronounce: "뉴클리어스", ko: "핵 / 원자핵", desc: "세포의 사령탑인 세포핵 또는 원자의 중심", tip: "모든 것의 중심부"},
+        {id: 153, en: "observations", pronounce: "아저베이션즈", ko: "관찰 / 관측", desc: "오감이나 도구를 써서 현상을 살펴보는 것", tip: "꼼꼼히 살펴보는 과정"},
+        {id: 154, en: "ohm", pronounce: "옴", ko: "옴 (저항 단위)", desc: "전기 저항의 단위 (Ω)", tip: "전기 저항의 단위"},
+        {id: 155, en: "Ohm's law", pronounce: "옴즈 로", ko: "옴의 법칙", desc: "전압은 전류와 저항의 곱에 비례한다 (V = IR)", tip: "V = IR 공식"},
+        {id: 156, en: "opaque", pronounce: "오페이크", ko: "불투명한", desc: "빛이 전혀 통과하지 못해 반대편이 안 보임", tip: "빛이 안 통함", relations: [{en: "transparent", type: "opposite"}]},
+        {id: 157, en: "optical telescope", pronounce: "옵티컬 텔레스코프", ko: "광학 망원경", desc: "렌즈나 거울로 가시광선을 모아 보는 망원경", tip: "눈으로 보는 망원경"},
+        {id: 158, en: "outcome", pronounce: "아웃컴", ko: "결과", desc: "실험이나 행동이 끝난 후 나타난 최종 상태", tip: "최종 나타난 결과"},
+        {id: 159, en: "parallax", pronounce: "패럴랙스", ko: "시차 (천문학)", desc: "보는 위치에 따라 물체가 다르게 보이는 현상", tip: "시선 위치에 따른 차이"},
+        {id: 160, en: "parallel circuit", pronounce: "패럴렐 서킷", ko: "병렬 회로", desc: "전기가 흐르는 길이 여러 갈래로 나뉜 회로", tip: "여러 갈래 전기 회로", relations: [{en: "series circuit", type: "opposite"}]},
+        {id: 161, en: "percolation", pronounce: "퍼컬레이션", ko: "여과 / 스며듦", desc: "물이 흙 사이를 통과하며 걸러져 스며듬", tip: "흙 사이로 스며듦"},
+        {id: 162, en: "planet", pronounce: "플래닛", ko: "행성", desc: "스스로 빛내지 못하고 항성 주위를 도는 천체", tip: "항성 주위를 도는 천체", relations: [{en: "star", type: "opposite"}]},
+        {id: 163, en: "polyatomic ion", pronounce: "폴리아토믹 아이온", ko: "다원자 이온", desc: "여러 원자가 뭉쳐 전기를 띤 이온 덩어리", tip: "여러 원자의 이온 덩어리"},
+        {id: 164, en: "positive mutation", pronounce: "포지티브 뮤테이션", ko: "양성 돌연변이", desc: "유전자 변화 덕에 환경 적응에 이로워짐", tip: "이로운 유전자 변이", relations: [{en: "negative mutation", type: "opposite"}]},
+        {id: 165, en: "potential difference", pronounce: "포텐셜 디퍼런스", ko: "전위차 / 전압", desc: "두 지점 간의 전기적 에너지 차이", tip: "전기를 흐르게 하는 압력"},
+        {id: 166, en: "power", pronounce: "파워", ko: "전력 / 일률", desc: "단위 시간 동안 에너지를 처리하는 능력", tip: "일 처리 능률"},
+        {id: 167, en: "power rating", pronounce: "파워 레이팅", ko: "정격 전력", desc: "가전제품이 버텨낼 수 있는 최대 안전 전력", tip: "최대 안전 소비전력"},
+        {id: 168, en: "pressure", pronounce: "프레셔", ko: "압력", desc: "단위 면적당 누르는 힘의 크기", tip: "누르는 힘의 세기"},
+        {id: 169, en: "probe", pronounce: "프로브", ko: "우주 탐사선", desc: "멀리 우주로 보내 정보를 수집하는 로봇 우주선", tip: "우주 탐사 로봇"},
+        {id: 170, en: "prokaryote", pronounce: "프로카리오트", ko: "원핵생물", desc: "세포 안에 뚜렷한 핵이 없는 원시적 생물", tip: "핵이 없는 원시 세포", relations: [{en: "eukaryote", type: "opposite"}]},
+        {id: 171, en: "properties", pronounce: "프로퍼티즈", ko: "물질의 성질", desc: "그 물질이 가지고 있는 고유한 특징", tip: "고유한 성질과 특징"},
+        {id: 172, en: "protein", pronounce: "프로테인", ko: "단백질", desc: "몸을 이루고 근육과 효소를 만드는 필수 유기물", tip: "몸을 구성하는 주성분"},
+        {id: 173, en: "proton", pronounce: "프로톤", ko: "양성자", desc: "원자핵 속에 있는 (+) 전기를 띠는 알갱이", tip: "핵 속의 양(+)전하 입자", relations: [{en: "electron", type: "opposite"}]},
+        {id: 174, en: "Ptolemy", pronounce: "톨레미", ko: "프톨레마이오스", desc: "지구가 중심이라는 천동설을 주장한 학자", tip: "천동설의 학자", relations: [{en: "Copernicus", type: "opposite"}]},
+        {id: 175, en: "radio telescope", pronounce: "라디오 텔레스코프", ko: "전파 망원경", desc: "우주에서 오는 전파를 잡아 관측하는 망원경", tip: "전파 수신 망원경"},
+        {id: 176, en: "recessive", pronounce: "리세시브", ko: "열성 (유전)", desc: "우성에 가려져 겉으로 잘 안 드러나는 성질", tip: "우성에 가려져 숨음", relations: [{en: "dominant", type: "opposite"}]},
+        {id: 177, en: "red shift", pronounce: "레드 쉬프트", ko: "적색편이", desc: "별빛 파장이 붉은색 쪽으로 치우쳐 보임", tip: "멀어지는 별빛의 변형"},
+        {id: 178, en: "regeneration", pronounce: "리제너레이션", ko: "재생 (생물)", desc: "손상된 몸 부위에 다시 새살이 돋아 복구됨", tip: "새살이 다시 돋음"},
+        {id: 179, en: "repetition", pronounce: "레피티션", ko: "실험 반복", desc: "정확도를 높이기 위해 실험을 거듭함", tip: "거듭 반복함"},
+        {id: 180, en: "replication", pronounce: "레플리카션", ko: "복제 (DNA)", desc: "DNA가 똑같은 쌍둥이를 만들어냄", tip: "똑같은 복사본 생성"},
+        {id: 181, en: "resistance", pronounce: "리지스턴스", ko: "저항", desc: "흐름을 방해하려는 힘", tip: "흐름에 거스르는 힘"},
+        {id: 182, en: "resistor", pronounce: "리지스터", ko: "저항기", desc: "회로에서 전류의 흐름을 줄여주는 전자 부품", tip: "전류를 줄여주는 부품"},
+        {id: 183, en: "revolution", pronounce: "레볼루션", ko: "공전", desc: "행성이 다른 큰 천체 주위를 따라 도는 것", tip: "태양 주위를 도는 움직임", relations: [{en: "rotation", type: "opposite"}]},
+        {id: 184, en: "Roman numeral", pronounce: "로만 뉴메럴", ko: "로마 숫자", desc: "I, II, III처럼 셈을 나타내는 표기법", tip: "I, II, III 표기법"},
+        {id: 185, en: "rotation", pronounce: "로테이션", ko: "자전", desc: "자기 자신의 축을 기준으로 빙글빙글 돎", tip: "제자리에서 도는 회전", relations: [{en: "revolution", type: "opposite"}]},
+        {id: 186, en: "rover", pronounce: "로버", ko: "행성 탐사차", desc: "화성 표면 등을 직접 굴러다니며 탐사하는 차", tip: "화성을 달리는 탐사차"},
+        {id: 187, en: "satellite", pronounce: "새틀라이트", ko: "위성 / 인공위성", desc: "행성 주위를 도는 달이나 인공 탐사체", tip: "행성을 도는 천체"},
+        {id: 188, en: "saturation", pronounce: "새츄레이션", ko: "포화 상태", desc: "용액에 물질이 최대로 녹아 더 안 녹는 상태", tip: "최대로 꽉 들어참"},
+        {id: 189, en: "series circuit", pronounce: "시리즈 서킷", ko: "직렬 회로", desc: "전기 길이 하나 뿐인 회로", tip: "한 줄 연결 회로", relations: [{en: "parallel circuit", type: "opposite"}]},
+        {id: 190, en: "sexual reproduction", pronounce: "섹슈얼 리프로덕션", ko: "유성 생식", desc: "암수 생식세포가 만나 자손을 만드는 방식", tip: "암수가 만나 번식함", relations: [{en: "asexual reproduction", type: "opposite"}]},
+        {id: 191, en: "solar eclipse", pronounce: "솔라 이클립스", ko: "일식", desc: "달이 태양과 지구 사이에 끼어 태양을 가림", tip: "태양이 가려짐", relations: [{en: "lunar eclipse", type: "opposite"}]},
+        {id: 192, en: "solar system", pronounce: "솔라 시스템", ko: "태양계", desc: "태양과 그 주변을 도는 행성들의 구역", tip: "태양과 행성들의 집단"},
+        {id: 193, en: "solute", pronounce: "솔루트", ko: "용질", desc: "소금물에서 소금처럼 녹아드는 물질", tip: "녹아드는 알갱이"},
+        {id: 194, en: "solvent", pronounce: "솔벤트", ko: "용매", desc: "소금물에서 물처럼 녹이는 액체", tip: "녹여주는 액체"},
+        {id: 195, en: "spectroscope", pronounce: "스펙트로스코프", ko: "분광기", desc: "별빛을 무지개 색으로 쪼개어 성분을 분석함", tip: "빛을 쪼개어 분석함"},
+        {id: 196, en: "spindle fibres", pronounce: "스핀들 파이버즈", ko: "방추사", desc: "세포분열 때 염색체를 끌어당기는 실", tip: "염색체를 끌어당기는 실"},
+        {id: 197, en: "spiral galaxy", pronounce: "스파이럴 갤러시", ko: "나선 은하", desc: "소용돌이 팔이 감겨 있는 은하 (우리은하 등)", tip: "소용돌이 형태 은하", relations: [{en: "elliptical galaxy", type: "link"}, {en: "irregular galaxy", type: "link"}]},
+        {id: 198, en: "spore", pronounce: "스포어", ko: "포자 / 홀씨", desc: "버섯 등이 씨앗 대신 퍼뜨리는 세포", tip: "씨앗 대신 날리는 세포"},
+        {id: 199, en: "star", pronounce: "스타", ko: "별 / 항성", desc: "스스로 빛과 열을 내뿜는 거대한 가스 천체", tip: "스스로 빛나는 천체", relations: [{en: "planet", type: "opposite"}]},
+        {id: 200, en: "star cluster", pronounce: "스타 클러스터", ko: "성단", desc: "수많은 별들이 중력에 의해 무리지어 모임", tip: "별들이 무리지어 모임"},
+        {id: 201, en: "state", pronounce: "스테이트", ko: "물질의 상태", desc: "고체, 액체, 기체 등의 물질 상태", tip: "고체, 액체, 기체 상태"},
+        {id: 202, en: "static charge", pronounce: "스테틱 차지", ko: "정전기", desc: "흘러가지 않고 물체 겉면에 머무는 전기", tip: "가만히 멈춰있는 전기", relations: [{en: "current electricity", type: "opposite"}]},
+        {id: 203, en: "stem cell", pronounce: "스템 셀", ko: "줄기세포", desc: "어떤 세포로든 변할 수 있는 만능 세포", tip: "모든 세포의 근본 줄기"},
+        {id: 204, en: "subatomic particle", pronounce: "섭애토믹 파티클", ko: "아원자 입자", desc: "원자를 이루는 더 작은 알갱이들", tip: "원자보다 더 작은 입자"},
+        {id: 205, en: "supernova", pronounce: "슈퍼노바", ko: "초신성", desc: "무거운 별이 수명을 다해 일으키는 대폭발", tip: "별의 대폭발 현상"},
+        {id: 206, en: "systematic", pronounce: "시스테마틱", ko: "체계적인", desc: "순서와 규칙을 갖추고 정돈된 상태", tip: "체계가 잘 잡힌 상태"},
+        {id: 207, en: "temperature", pronounce: "템퍼러처", ko: "온도", desc: "물체의 차갑고 뜨거운 정도 수치", tip: "뜨겁고 차가운 수치"},
+        {id: 208, en: "terraforming", pronounce: "테라포밍", ko: "테라포밍 (행성 개조)", desc: "다른 행성을 사람이 살 수 있게 개조함", tip: "지구 환경처럼 개조함"},
+        {id: 209, en: "test", pronounce: "테스트", ko: "실험 / 검사", desc: "가설이 맞는지 확인하기 위한 검사", tip: "검증을 위한 시험"},
+        {id: 210, en: "theory (scientific theory)", pronounce: "씨어리", ko: "과학 이론", desc: "수많은 실험으로 뒷받침된 확고한 설명", tip: "검증된 과학적 설명"},
+        {id: 211, en: "translucent", pronounce: "트랜슬루센트", ko: "반투명한", desc: "빛이 흐릿하게 통과하는 성질", tip: "흐릿하게 보이는 반투명", relations: [{en: "transparent", type: "link"}]},
+        {id: 212, en: "transparent", pronounce: "트랜스페어런트", ko: "투명한", desc: "빛이 훤히 통과해 반대편이 맑게 보임", tip: "훤히 비치는 투명함", relations: [{en: "opaque", type: "opposite"}]},
+        {id: 213, en: "triangulation", pronounce: "트라이앵귤레이션", ko: "삼각측량", desc: "삼각형 원리로 먼 거리를 재는 방법", tip: "삼각형 원리 활용 측량"},
+        {id: 214, en: "unit", pronounce: "유닛", ko: "측정 단위", desc: "크기를 나타낼 때 기준이 되는 척도", tip: "측정의 기준 단위"},
+        {id: 215, en: "valence electron", pronounce: "밸런스 일렉트론", ko: "원자가 전자", desc: "가장 바깥 껍질에 살며 반응하는 전자", tip: "가장 바깥쪽 반응 전자"},
+        {id: 216, en: "valence shell", pronounce: "밸런스 셸", ko: "원자가 전자껍질", desc: "전자가 들어 있는 가장 바깥쪽 껍질", tip: "가장 바깥쪽 전자 껍데기"},
+        {id: 217, en: "Van de Graaff generator", pronounce: "반데그라프 제너레이터", ko: "반데그라프 발전기", desc: "마찰을 이용해 정전기를 만드는 장치", tip: "정전기 발생 장치"},
+        {id: 218, en: "variable", pronounce: "베리어블", ko: "변수 (실험)", desc: "실험 결과에 영향을 줄 수 있는 조건들", tip: "변화할 수 있는 조건"},
+        {id: 219, en: "vegetative reproduction", pronounce: "베제타티브 리프로덕션", ko: "영양 생식", desc: "줄기나 뿌리로 씨앗 없이 자손을 늘림", tip: "영양기관으로 번식"},
+        {id: 220, en: "volt", pronounce: "볼트", ko: "볼트 (전압 단위)", desc: "전압의 단위 (V)", tip: "전압의 표준 단위"},
+        {id: 221, en: "voltage", pronounce: "볼티지", ko: "전압", desc: "전기를 밀어내는 압력의 세기", tip: "전기를 밀어내는 세기"},
+        {id: 222, en: "volume", pronounce: "볼륨", ko: "부피", desc: "물체가 차지하고 있는 공간의 크기", tip: "공간의 크기"},
+        {id: 223, en: "watt", pronounce: "와트", ko: "와트 (전력 단위)", desc: "전력의 단위 (W)", tip: "전력 소비 단위"},
+        {id: 224, en: "Western science", pronounce: "웨스턴 사이언스", ko: "서양 과학", desc: "서구권을 중심으로 발전해 온 과학 체계", tip: "현대 과학의 주축"},
+        {id: 225, en: "WHMIS", pronounce: "윔리스", ko: "유해물질 정보시스템", desc: "위험 화학물질을 알려주는 경고 시스템", tip: "유해물질 경고 표기"},
+        {id: 226, en: "zygote", pronounce: "자이고트", ko: "수정란 / 접합자", desc: "정자와 난자가 합쳐져 만들어진 최초 아기 세포", tip: "생명의 첫 세포"}
+    ];
+
+    // 계층형 개념 패밀리: 단어는 한 패밀리에서만 하위 항목으로 나타나지만,
+    // 하위 항목 자체도 다시 눌러 더 구체적인 단어와 뜻/꿀팁을 펼칠 수 있다.
+    const familyMap = {
+        "atom": ["Bohr model", "element", "molecule", "subatomic particle"],
+        "subatomic particle": ["atomic mass", "atomic number", "electron", "neutron", "proton"],
+        "electron": ["electron shell"],
+        "electron shell": ["valence shell"],
+        "valence shell": ["valence electron"],
+        "chemical": ["acetate", "chemical formula", "chemical name", "chemical symbol", "covalent compound", "heterogeneous", "homogeneous", "ionic compound", "nomenclature", "solute", "solvent", "saturation"],
+        "ionic compound": ["ionic lattice", "polyatomic ion"],
+        "nomenclature": ["binomial", "multiple ion charge", "multivalent metal", "Roman numeral"],
+        "element": ["alkali metals", "alkaline earth metals", "halogens", "metal", "metalloid", "noble gases", "non-metal"],
+        "properties": ["density", "mass", "pressure", "state", "temperature", "volume"],
+        "state": ["boiling point", "melting point"],
+        "unit": ["amperes", "coulomb", "joule", "kilowatt-hour", "light year", "ohm", "volt", "watt"],
+        "volt": ["voltage"],
+        "joule": ["energy"],
+        "electric circuit": ["circuit diagrams", "current electricity", "electric load", "junction point", "Ohm's law", "parallel circuit", "potential difference", "series circuit"],
+        "current electricity": ["electric current"],
+        "Ohm's law": ["electrical resistance"],
+        "electrical resistance": ["resistance", "resistor"],
+        "watt": ["electrical power"],
+        "electrical power": ["power", "power rating"],
+        "conductivity": ["conductors"],
+        "static charge": ["charging by conduction", "charging by induction", "grounding", "laws of static charge", "Van de Graaff generator"],
+        "electrochemical cells": ["electrodes", "electrolyte"],
+        "energy": ["electric potential energy", "endothermic", "exothermic", "fission", "fusion"],
+        "celestial bodies": ["asteroid", "black hole", "comet", "dwarf", "elliptical galaxy", "irregular galaxy", "moon", "planet", "spiral galaxy", "star"],
+        "star": ["star cluster", "supernova"],
+        "probe": ["rover"],
+        "planet": ["terraforming"],
+        "interstellar matter": ["nebula"],
+        "solar system": ["axis", "geosynchronous orbit", "lunar eclipse", "lunar month", "revolution", "satellite", "solar eclipse"],
+        "axis": ["axis tilt", "rotation"],
+        "astronomers": ["Copernicus", "Galileo", "Kepler", "Ptolemy"],
+        "electromagnetic radiation": ["amplitude", "Doppler effect", "red shift"],
+        "red shift": ["cosmological red shift"],
+        "observations": ["optical telescope", "parallax", "radio telescope", "spectroscope", "triangulation"],
+        "cell cycle": ["cancer", "interphase", "mitosis", "meiosis", "cytokinesis", "spindle fibres"],
+        "chromosome": ["homologous chromosomes", "diploid number", "haploid number"],
+        "DNA": ["gene", "replication", "genetic diversity"],
+        "gene": ["allele", "gene mutation", "gene therapy", "protein", "clone"],
+        "gene mutation": ["mutagen", "negative mutation", "neutral mutation", "positive mutation"],
+        "genetic diversity": ["evolution"],
+        "allele": ["dominant", "recessive", "heterozygous", "homozygous"],
+        "sexual reproduction": ["external fertilization", "internal fertilization", "gametes", "mating", "generation"],
+        "fertilization": ["zygote"],
+        "zygote": ["embryo"],
+        "embryo": ["embryonic development"],
+        "asexual reproduction": ["binary fission", "budding", "fragmentation", "regeneration", "spore", "vegetative reproduction"],
+        "kingdoms": ["eukaryote", "prokaryote"],
+        "eukaryote": ["nucleus"],
+        "nucleus": ["nucleolus"],
+        "stem cell": ["differentiation"],
+        "fault": ["fold"],
+        "infiltration": ["percolation"],
+        "opaque": ["translucent", "transparent"],
+        "force": ["action-at-a-distance forces", "contact forces", "electric force"],
+        "test": ["empirical", "evidence", "hypothesis", "observations", "outcome", "repetition", "systematic"],
+        "hypothesis": ["variable"],
+        "variable": ["controlled", "independent"],
+        "theory (scientific theory)": ["law (scientific law)", "model (scientific model)"],
+        "WHMIS": ["hazard symbol"],
+    };
+
+    const vocabNames = new Set(masterData.map(item => item.en));
+    const itemByName = new Map(masterData.map(item => [item.en, item]));
+    // Remove nonexistent/self/duplicate assignments and break cycles while allowing nested parents.
+    const assignedFamilyNames = new Set();
+    const cleanedFamilyMap = {};
+    for (const [parent, children] of Object.entries(familyMap)) {
+        if (!vocabNames.has(parent)) continue;
+        cleanedFamilyMap[parent] = [];
+        for (const child of children) {
+            if (!vocabNames.has(child) || child === parent || assignedFamilyNames.has(child)) continue;
+            // Avoid a cycle if a proposed child is already an ancestor of this parent.
+            let cursor = parent, cycle = false, seen = new Set();
+            while (cursor && !seen.has(cursor)) {
+                if (cursor === child) { cycle = true; break; }
+                seen.add(cursor);
+                cursor = Object.entries(cleanedFamilyMap).find(([p, arr]) => arr.includes(cursor))?.[0];
+            }
+            if (cycle) continue;
+            cleanedFamilyMap[parent].push(child);
+            assignedFamilyNames.add(child);
+        }
+    }
+    // Remove misleading duplicate opposite relation between conductivity and insulators;
+    // conductor vs insulator remains the actual contrast.
+    masterData.forEach(item => {
+        if (item.en === 'conductivity') item.relations = (item.relations || []).filter(r => r.en !== 'insulators');
+    });
+    // Normalize original relationships into one-way edges. A term already placed in a family
+    // is not repeated as a second relation item, but can still have its own expandable children.
+    const familyChildren = new Set(assignedFamilyNames);
+    const relationPairs = new Map();
+    masterData.forEach(item => (item.relations || []).forEach(rel => {
+        if (!vocabNames.has(rel.en) || rel.en === item.en) return;
+        const target = itemByName.get(rel.en);
+        const a = item.id < target.id ? item.en : rel.en;
+        const b = a === item.en ? rel.en : item.en;
+        const key = `${a}|||${b}`;
+        const existing = relationPairs.get(key);
+        const type = rel.type === 'opposite' || existing?.type === 'opposite' ? 'opposite' : 'link';
+        relationPairs.set(key, { parent: a, child: b, type });
+    }));
+    const normalizedRelations = new Map(masterData.map(item => [item.en, []]));
+    const usedRelationChildren = new Set();
+    const sortedPairs = [...relationPairs.values()].sort((a,b) => (a.type === 'opposite' ? 0 : 1) - (b.type === 'opposite' ? 0 : 1));
+    for (const pair of sortedPairs) {
+        if (familyChildren.has(pair.child) || usedRelationChildren.has(pair.child)) continue;
+        // If both concepts already live under another family, don't duplicate either one.
+        if (familyChildren.has(pair.parent) && familyChildren.has(pair.child)) continue;
+        normalizedRelations.get(pair.parent).push({ en: pair.child, type: pair.type });
+        usedRelationChildren.add(pair.child);
+    }
+    masterData.forEach(item => { item.relations = normalizedRelations.get(item.en) || []; });
+    const familyByParent = cleanedFamilyMap;
+    const allUsedAsChildren = new Set([...familyChildren, ...usedRelationChildren]);
+
+    let currentMode = 'en';
+
+    function switchMode(mode) {
+        currentMode = mode;
+        document.getElementById('btn-en').classList.toggle('active', mode === 'en');
+        document.getElementById('btn-ko').classList.toggle('active', mode === 'ko');
+
+        const tipBox = document.getElementById('guideTip');
+        if (mode === 'en') {
+            tipBox.innerHTML = `💡 <b>영단어 기준 모드</b>: 대표 단어 아래에 관련 개념을 모아 두었습니다. 검색하면 패밀리 속 단어도 개별 카드로 찾을 수 있어요!`;
+        } else {
+            tipBox.innerHTML = `💡 <b>한글 개념 기준 모드</b>: 대표 개념 아래에 관련 개념을 모아 두었습니다. 검색하면 패밀리 속 단어도 개별 카드로 찾을 수 있어요!`;
+        }
+
+        document.getElementById('searchInput').value = '';
+        renderData();
+    }
+
+    function renderData(dataToRender = null) {
+        const container = document.getElementById('vocabContainer');
+        container.innerHTML = '';
+
+        let list = dataToRender !== null ? [...dataToRender] : masterData.filter(item => !allUsedAsChildren.has(item.en));
+
+        if (currentMode === 'en') {
+            list.sort((a, b) => a.en.localeCompare(b.en));
+        } else {
+            list.sort((a, b) => a.ko.localeCompare(b.ko));
+        }
+
+        list.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+
+            const primaryTitle = currentMode === 'en' ? item.en : item.ko;
+            const subTitle = currentMode === 'en' ? `[${item.ko}] (${item.pronounce})` : `[${item.en}] (${item.pronounce})`;
+
+            const relations = item.relations || [];
+            const familyMembers = familyByParent[item.en] || [];
+            const hasExpandable = relations.length > 0 || familyMembers.length > 0;
+            const rootToken = `root-${item.id}`;
+
+            let html = `
+                <div class="vocab-header" ${hasExpandable ? `onclick="toggleSubTree('${rootToken}')"` : ''}>
+                    <div>
+                        <span class="vocab-title">${primaryTitle}</span>
+                        <span class="vocab-pronounce">${subTitle}</span>
+                    </div>
+                    ${hasExpandable ? `<span class="expand-badge" id="badge-${rootToken}">➕ 관련 개념 펼치기 (${familyMembers.length + relations.length})</span>` : ''}
+                </div>
+                <div class="vocab-meaning">${item.desc}</div>
+                <div><span class="vocab-tip">💡 꿀팁: ${item.tip}</span></div>
+            `;
+            if (hasExpandable) {
+                html += `<div class="sub-tree-container" id="tree-${rootToken}">`;
+                html += renderNestedChildren(item, rootToken, new Set([item.en]));
+                html += `</div>`;
+            }
+
+            card.innerHTML = html;
+            container.appendChild(card);
+        });
+    }
+
+    function renderNestedChildren(parentItem, parentToken, ancestry) {
+        let out = '';
+        const families = familyByParent[parentItem.en] || [];
+        const relations = parentItem.relations || [];
+        if (families.length) out += `<div class="sub-tree-title">🌿 관련 개념 패밀리</div>`;
+        families.forEach((name, index) => {
+            const child = itemByName.get(name);
+            if (!child || ancestry.has(name)) return;
+            out += renderNestedNode(child, 'family', parentToken, ancestry, index);
+        });
+        if (relations.length) out += `<div class="sub-tree-title">🔗 연관·대비 개념</div>`;
+        relations.forEach((rel, index) => {
+            const child = itemByName.get(rel.en);
+            if (!child || ancestry.has(rel.en)) return;
+            out += renderNestedNode(child, rel.type, parentToken, ancestry, index);
+        });
+        return out;
+    }
+
+    function renderNestedNode(child, type, parentToken, ancestry, index) {
+        const token = `${parentToken}-${child.id}-${index}`;
+        const title = currentMode === 'en' ? child.en : child.ko;
+        const subtitle = currentMode === 'en' ? `[${child.ko}] (${child.pronounce})` : `[${child.en}] (${child.pronounce})`;
+        const nextAncestry = new Set(ancestry);
+        nextAncestry.add(child.en);
+        const nestedFamilies = familyByParent[child.en] || [];
+        const nestedRelations = child.relations || [];
+        const hasNested = nestedFamilies.some(n => !nextAncestry.has(n)) || nestedRelations.some(r => !nextAncestry.has(r.en));
+        const badgeClass = type === 'opposite' ? 'badge-opposite' : (type === 'family' ? 'badge-unit' : 'badge-link');
+        const badgeText = type === 'opposite' ? '↔ 반대 개념' : (type === 'family' ? '📚 패밀리' : '🔗 연관');
+        let out = `<div class="sub-item family-item"><span class="relation-badge ${badgeClass}">${badgeText}</span><div class="family-copy">`;
+        out += `<div class="family-node-head" ${hasNested ? `onclick="event.stopPropagation(); toggleSubTree('${token}')"` : ''}><b>${title}</b> <span class="family-subtitle">${subtitle}</span>${hasNested ? `<span class="expand-badge" id="badge-${token}">➕ 더 보기 (${nestedFamilies.length + nestedRelations.length})</span>` : ''}</div>`;
+        out += `<div>${child.desc}</div><div class="vocab-tip">💡 꿀팁: ${child.tip}</div>`;
+        if (hasNested) out += `<div class="sub-tree-container nested-tree" id="tree-${token}">${renderNestedChildren(child, token, nextAncestry)}</div>`;
+        out += `</div></div>`;
+        return out;
+    }
+
+    function toggleSubTree(id) {
+        const treeElem = document.getElementById(`tree-${id}`);
+        const badgeElem = document.getElementById(`badge-${id}`);
+        if (!treeElem) return;
+        if (treeElem.style.display === 'block') {
+            treeElem.style.display = 'none';
+            if (badgeElem) { badgeElem.innerText = '➕ 더 보기'; badgeElem.style.background = '#e2ede7'; badgeElem.style.color = '#3b6e54'; }
+        } else {
+            treeElem.style.display = 'block';
+            if (badgeElem) { badgeElem.innerText = '➖ 닫기'; badgeElem.style.background = '#3b6e54'; badgeElem.style.color = 'white'; }
+        }
+    }
+
+    function filterData() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        if (!query) {
+            renderData();
+            return;
+        }
+
+        const filtered = masterData.filter(item => 
+            item.en.toLowerCase().includes(query) ||
+            item.ko.toLowerCase().includes(query) ||
+            item.pronounce.toLowerCase().includes(query) ||
+            item.desc.toLowerCase().includes(query)
+        );
+
+        renderData(filtered);
+    }
+
+
+    // 암기 연습: 원본 단어 데이터로 객관식·주관식·빈칸·짝맞추기·플래시카드 제공
+    let currentView = 'vocab';
+    let currentStudyMode = 'multiple';
+    let studyPool = [];
+    let studyIndex = 0;
+    let studyLocked = false;
+    let studyScore = 0;
+    let matchLeft = [];
+    let matchRight = [];
+    let matchSelectedLeft = null;
+    let matchSelectedRight = null;
+    let matchedIds = new Set();
+    let flashRevealed = false;
+
+    function shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    function switchMode(mode) {
+        if (mode === 'study') {
+            currentView = 'study';
+            document.getElementById('btn-en').classList.remove('active');
+            document.getElementById('btn-ko').classList.remove('active');
+            document.getElementById('btn-study').classList.add('active');
+            document.getElementById('searchInput').style.display = 'none';
+            document.getElementById('vocabContainer').style.display = 'none';
+            document.getElementById('studyPanel').style.display = 'block';
+            document.getElementById('guideTip').innerHTML = '🧠 <b>암기 연습</b>: 객관식, 주관식, 빈칸 채우기, 짝 맞추기, 플래시카드 중 원하는 방식으로 연습해 보세요.';
+            startStudy(currentStudyMode);
+            return;
+        }
+        currentView = 'vocab';
+        currentMode = mode;
+        document.getElementById('btn-en').classList.toggle('active', mode === 'en');
+        document.getElementById('btn-ko').classList.toggle('active', mode === 'ko');
+        document.getElementById('btn-study').classList.remove('active');
+        document.getElementById('searchInput').style.display = '';
+        document.getElementById('vocabContainer').style.display = 'flex';
+        document.getElementById('studyPanel').style.display = 'none';
+        const tipBox = document.getElementById('guideTip');
+        tipBox.innerHTML = mode === 'en'
+            ? '💡 <b>영단어 기준 모드</b>: 대표 단어 아래에 관련 개념을 모아 두었습니다. 검색하면 패밀리 속 단어도 개별 카드로 찾을 수 있어요!'
+            : '💡 <b>한글 개념 기준 모드</b>: 대표 개념 아래에 관련 개념을 모아 두었습니다. 검색하면 패밀리 속 단어도 개별 카드로 찾을 수 있어요!';
+        document.getElementById('searchInput').value = '';
+        renderData();
+    }
+
+    function startStudy(mode) {
+        currentStudyMode = mode;
+        studyPool = shuffleArray(masterData).slice(0, mode === 'match' ? 5 : 10);
+        studyIndex = 0;
+        studyLocked = false;
+        studyScore = 0;
+        matchLeft = shuffleArray(studyPool);
+        matchRight = shuffleArray(studyPool);
+        matchSelectedLeft = null;
+        matchSelectedRight = null;
+        matchedIds = new Set();
+        flashRevealed = false;
+        document.querySelectorAll('.study-mode-btn').forEach(btn => btn.classList.remove('active'));
+        const buttons = [...document.querySelectorAll('.study-mode-btn')];
+        const modeIndex = ({multiple:0, short:1, blank:2, match:3, flash:4})[mode];
+        if (buttons[modeIndex]) buttons[modeIndex].classList.add('active');
+        renderStudy();
+    }
+
+    function renderStudy() {
+        const box = document.getElementById('studyContent');
+        if (!box) return;
+        if (currentStudyMode === 'match') { renderMatch(box); return; }
+        if (studyIndex >= studyPool.length) {
+            box.innerHTML = `<div class="study-card"><div class="study-question">🎉 연습 끝!</div><p>이번 세트 점수: <b>${studyScore} / ${studyPool.length}</b></p><button class="study-action primary" onclick="startStudy(currentStudyMode)">새 문제로 다시 하기</button></div>`;
+            return;
+        }
+        const item = studyPool[studyIndex];
+        const progress = `<div class="study-muted">문제 ${studyIndex + 1} / ${studyPool.length} · 점수 ${studyScore}</div>`;
+        if (currentStudyMode === 'multiple') {
+            const choices = shuffleArray([item, ...shuffleArray(masterData.filter(x => x.id !== item.id)).slice(0,3)]);
+            box.innerHTML = `<div class="study-card">${progress}<div class="study-question">뜻이 <span style="color:#3b6e54">“${item.ko}”</span>인 영단어는?</div><div class="study-options">${choices.map(c => `<button class="study-option" onclick="answerMultiple(${c.id},${item.id},this)">${c.en}</button>`).join('')}</div><div id="studyFeedback"></div><div style="margin-top:14px"><button class="study-action primary" id="studyNext" style="display:none" onclick="nextStudyQuestion()">다음 문제 →</button></div></div>`;
+        } else if (currentStudyMode === 'short' || currentStudyMode === 'blank') {
+            const prompt = currentStudyMode === 'short' ? `한글 뜻 “${item.ko}”에 해당하는 영단어를 써 보세요.` : `아래 설명의 빈칸에 들어갈 영단어를 쓰세요.`;
+            box.innerHTML = `<div class="study-card">${progress}<div class="study-question">${prompt}</div>${currentStudyMode === 'blank' ? `<p>${item.desc}</p>` : `<p class="study-muted">힌트: ${item.desc}</p>`}<label for="studyAnswer">영단어</label><br><input class="study-input" id="studyAnswer" autocomplete="off" placeholder="영단어 입력..." onkeydown="if(event.key==='Enter') checkTypedAnswer()"><br><button class="study-action primary" onclick="checkTypedAnswer()">정답 확인</button><div id="studyFeedback"></div><div style="margin-top:14px"><button class="study-action primary" id="studyNext" style="display:none" onclick="nextStudyQuestion()">다음 문제 →</button></div></div>`;
+            setTimeout(() => document.getElementById('studyAnswer')?.focus(), 0);
+        } else if (currentStudyMode === 'flash') {
+            box.innerHTML = `<div class="study-card">${progress}<div class="flash-front">${item.en}</div>${flashRevealed ? `<div class="study-question">${item.ko}</div><p>${item.desc}</p><div class="study-feedback">💡 꿀팁: ${item.tip}</div>` : `<p class="study-muted" style="text-align:center">뜻을 떠올린 다음 정답을 확인하세요.</p>`}<div style="text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${!flashRevealed ? `<button class="study-action primary" onclick="revealFlashcard()">뜻과 꿀팁 보기</button>` : `<button class="study-action" onclick="markFlashcard(false)">아직 헷갈려요</button><button class="study-action primary" onclick="markFlashcard(true)">외웠어요 ✓</button>`}</div></div>`;
+        }
+    }
+
+    function answerMultiple(chosenId, correctId, button) {
+        if (studyLocked) return;
+        studyLocked = true;
+        const buttons = [...document.querySelectorAll('.study-option')];
+        buttons.forEach(b => { b.disabled = true; });
+        if (chosenId === correctId) { studyScore++; button.classList.add('correct'); }
+        else {
+            button.classList.add('wrong');
+            const correct = itemByName.get(studyPool[studyIndex].en);
+            buttons.find(b => b.textContent === correct.en)?.classList.add('correct');
+        }
+        const item = studyPool[studyIndex];
+        document.getElementById('studyFeedback').innerHTML = `<div class="study-feedback">${chosenId === correctId ? '정답! 🎉' : '아쉽지만 오답이에요.'}<br><b>${item.en}</b> — ${item.desc}<br>💡 ${item.tip}</div>`;
+        document.getElementById('studyNext').style.display = 'inline-block';
+    }
+
+    function normalizeAnswer(value) { return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' '); }
+    function checkTypedAnswer() {
+        if (studyLocked) return;
+        const item = studyPool[studyIndex];
+        const answer = normalizeAnswer(document.getElementById('studyAnswer').value);
+        const correct = normalizeAnswer(item.en);
+        studyLocked = true;
+        const ok = answer === correct;
+        if (ok) studyScore++;
+        document.getElementById('studyFeedback').innerHTML = `<div class="study-feedback">${ok ? '정답! 🎉' : '정답은'} <b>${item.en}</b> (${item.ko})<br>${item.desc}<br>💡 꿀팁: ${item.tip}</div>`;
+        document.getElementById('studyNext').style.display = 'inline-block';
+        document.getElementById('studyAnswer').disabled = true;
+    }
+
+    function nextStudyQuestion() { studyIndex++; studyLocked = false; flashRevealed = false; renderStudy(); }
+    function revealFlashcard() { flashRevealed = true; renderStudy(); }
+    function markFlashcard(remembered) { if (remembered) studyScore++; nextStudyQuestion(); }
+
+    function renderMatch(box) {
+        const done = matchedIds.size;
+        if (done === studyPool.length) {
+            box.innerHTML = `<div class="study-card"><div class="study-question">🎉 모든 짝을 맞췄어요!</div><p>총 ${studyPool.length}쌍을 완성했어요.</p><button class="study-action primary" onclick="startStudy('match')">새로운 짝 맞추기</button></div>`;
+            return;
+        }
+        box.innerHTML = `<div class="study-card"><div class="study-muted">영단어와 한글 뜻을 눌러 짝을 맞추세요 · ${done}/${studyPool.length}쌍</div><div class="match-grid"><div>${matchLeft.map(item => `<button class="match-choice ${matchedIds.has(item.id)?'matched':''} ${matchSelectedLeft===item.id?'selected':''}" ${matchedIds.has(item.id)?'disabled':''} onclick="selectMatch('left',${item.id})">${item.en}</button>`).join('')}</div><div>${matchRight.map(item => `<button class="match-choice ${matchedIds.has(item.id)?'matched':''} ${matchSelectedRight===item.id?'selected':''}" ${matchedIds.has(item.id)?'disabled':''} onclick="selectMatch('right',${item.id})">${item.ko}</button>`).join('')}</div></div><div id="matchFeedback" class="study-feedback">왼쪽 영단어 하나, 오른쪽 뜻 하나를 선택하세요.</div><button class="study-action" onclick="startStudy('match')">다시 섞기</button></div>`;
+    }
+
+    function selectMatch(side, id) {
+        if (side === 'left') matchSelectedLeft = id; else matchSelectedRight = id;
+        if (matchSelectedLeft !== null && matchSelectedRight !== null) {
+            const left = itemByName.get(studyPool.find(x => x.id === matchSelectedLeft)?.en);
+            const right = studyPool.find(x => x.id === matchSelectedRight);
+            if (left && right && left.id === right.id) {
+                matchedIds.add(left.id); studyScore++;
+                matchSelectedLeft = null; matchSelectedRight = null;
+                renderMatch(document.getElementById('studyContent'));
+                const feedback = document.getElementById('matchFeedback');
+                if (feedback) feedback.textContent = '맞았어요! 다음 짝을 찾아보세요.';
+                if (matchedIds.size === studyPool.length) renderMatch(document.getElementById('studyContent'));
+                return;
+            }
+            renderMatch(document.getElementById('studyContent'));
+            const feedback = document.getElementById('matchFeedback');
+            if (feedback) feedback.textContent = '짝이 아니에요. 단어의 뜻을 다시 생각해 보세요.';
+            matchSelectedLeft = null; matchSelectedRight = null;
+            return;
+        }
+        renderMatch(document.getElementById('studyContent'));
+    }
+
+
+    // 초기 실행
+    renderData();
+</script>
+
+</body>
+</html>
